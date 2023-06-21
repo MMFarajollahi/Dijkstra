@@ -1,0 +1,64 @@
+import numpy as np
+
+# Arc costs should be defined in cost matrix
+# If two nodes are not connected, the arc cost between them is infinity.
+# Make sure that your input matrix is symmetric.
+
+cost = np.array([[np.inf, 4, np.inf, np.inf, np.inf, np.inf, 7, np.inf, np.inf],
+                   [4, np.inf, 9, np.inf, np.inf, np.inf, 11, 20, np.inf],
+                   [np.inf, 9, np.inf, 6, 2, np.inf, np.inf, np.inf, np.inf],
+                   [np.inf, np.inf, 6, np.inf, 10, 5, np.inf, np.inf, np.inf],
+                   [np.inf, np.inf, 2, 10, np.inf, 15, np.inf, 1, 5],
+                   [np.inf, np.inf, np.inf, 5, 15, np.inf, np.inf, np.inf, 12],
+                   [7, 11, np.inf, np.inf, np.inf, np.inf, np.inf, 1, np.inf],
+                   [np.inf, 20, np.inf, np.inf, 1, np.inf, 1, np.inf, 3],
+                   [np.inf, np.inf, np.inf, np.inf, 5, 12, np.inf, 3, np.inf]])
+
+# Node numbers are defined in "node".
+# Note that "node_cost" are the node costs with the value of zero for the starting point and infinity for other nodes.
+
+
+node = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8])
+node_cost = ([0, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf, np.inf])
+node_num = cost.shape[1]
+
+# Initial parameter definition
+shortest_path_and_cost = [[] for _ in range(node_num)]
+visited_nodes = []
+to_be_visited = []
+temporary_costs = []
+minimum_node_cost = min(node_cost)
+start = node_cost.index(minimum_node_cost) # To find the start point of graph
+to_be_visited.append(start)
+
+for i in range(node_num):                               # Visiting all nodes
+    for k in to_be_visited:
+        temporary_costs.append(node_cost[k])            # Computing the cost for next visiting nodes
+
+    # The next node with lower cost should be identified by sorting
+    sorted_indices = sorted(range(len(temporary_costs)), key=lambda k: temporary_costs[k])
+    to_be_visited = [to_be_visited[idx] for idx in sorted_indices]
+    temporary_costs = [temporary_costs[idx] for idx in sorted_indices]
+    index = to_be_visited[0]                            # Candidate node
+
+    for j in range(node_num):                           # Computing next candidates to visit
+        if node_cost[index] + cost[index,j] <= node_cost[j] and cost[index,j] != np.inf and index not in visited_nodes:
+            node_cost[j] = node_cost[index] + cost[index,j]
+
+            shortest_path_and_cost[j] = [index, node[j]]    # Finding the route sequence to each node
+            for route in shortest_path_and_cost:
+                if len(route) != 0:
+                    if route[-1] == index:                  # To connect the last arc to the sequence of visited arcs
+                        shortest_path_and_cost[j].pop(0)
+                        shortest_path_and_cost[j] = route + shortest_path_and_cost[j]
+
+            if node[j] not in visited_nodes and node[j] not in to_be_visited:   # Eliminating redundancy of visited node
+                to_be_visited.append(node[j])
+
+    visited_nodes.append(to_be_visited[0])
+    to_be_visited.pop(0)
+    temporary_costs.clear()
+
+shortest_path_and_cost.pop(start)           # Eliminating the node itself
+print(node_cost)                            
+print(shortest_path_and_cost)
